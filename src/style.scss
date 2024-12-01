@@ -1,5 +1,8 @@
 @use "sass:map";
 
+@use "scss/core/reset";
+@include reset.init();
+
 /* ---- Fonts ---- */
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap");
 
@@ -63,45 +66,47 @@ $loc-typo-Lib: (
   letter-spacing: map.get($loc-FontLib, "tracking");
 }
 
-@mixin typo-TitleLarge {
+@mixin typoTitleLarge {
   @include _privateApplyFont("TitleLarge");
 }
 
-@mixin typo-DisplayLarge {
+@mixin typoDisplayLarge {
   @include _privateApplyFont("DisplayLarge");
 }
 
-@mixin typo-DisplayMedium {
+@mixin typoDisplayMedium {
   @include _privateApplyFont("DisplayMedium");
 }
 
-@mixin typo-DisplaySmall {
+@mixin typoDisplaySmall {
   @include _privateApplyFont("DisplaySmall");
 }
 
-@mixin typo-HeadlineLarge {
+@mixin typoHeadlineLarge {
   @include _privateApplyFont("HeadlineLarge");
 }
 
-@mixin typo-HeadlineMedium {
+@mixin typoHeadlineMedium {
   @include _privateApplyFont("HeadlineMedium");
 }
 
-@mixin typo-BodyLarge {
+@mixin typoBodyLarge {
   @include _privateApplyFont("BodyLarge");
 }
 
-@mixin typo-BodyMedium {
+@mixin typoBodyMedium {
   @include _privateApplyFont("BodyMedium");
 }
 /* --------------- */
 
 /* ---- General ---- */
-@mixin gridMainLayout {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  column-gap: 24px;
-  row-gap: 50px;
+$breakpoint-tablet: 768px;
+$breakpoint-pc: 1024px;
+
+@mixin flexVerticalLayout($gap) {
+  display: flex;
+  flex-direction: column;
+  gap: $gap;
 }
 
 @mixin gridBarLayout($paddingBlock: 75px) {
@@ -109,48 +114,75 @@ $loc-typo-Lib: (
   place-items: center;
   padding-block: $paddingBlock;
   text-transform: uppercase;
-  @include typo-DisplayMedium();
+  text-align: center;
+  @include typoDisplayMedium();
+}
+
+@mixin gridMainLayout() {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  column-gap: 16px;
+  row-gap: 50px;
+
+  @media (width >= $breakpoint-tablet) {
+    grid-template-columns: repeat(8, 1fr);
+    column-gap: 24px;
+  }
+
+  @media (width >= $breakpoint-pc) {
+    grid-template-columns: repeat(12, 1fr);
+  }
 }
 
 @mixin gridBlockLayout() {
   @include gridMainLayout();
 
-  padding-block: 100px;
-  > div {
-    grid-column: span 6;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+  & {
+    padding-block: 100px;
   }
-  > div:has(.image) {
-    display: grid;
-    grid-template-columns: subgrid;
-    overflow: hidden;
-    height: 100%;
-    .image {
-      background-position: center;
-      background-repeat: no-repeat;
-      background-size: cover;
-      border-radius: 16px;      
-    }
-  }
-  div:nth-child(odd):has(.image) {
-    .image {
-      grid-column: span 5;
-    }
-  }
-  div:nth-child(even):has(.image) {
-    .image {
-      grid-column: span 5 / -1;
-    }
-  }
-}
 
-@mixin buttonTemplate {
-  @include typo-DisplayMedium();
-  border-radius: 16px;
-  padding: 24px 64px;
-  text-transform: uppercase;
+  & > div {
+    @include flexVerticalLayout(16px);
+    grid-column: span 6;
+
+    &:has(.image) {
+      display: grid;
+      grid-template-columns: subgrid;
+      .image {
+        background-position: center;
+        background-size: cover;
+        border-radius: 16px;
+      }
+    }
+
+    &:nth-child(odd):has(.image) {
+      .image {
+        grid-column: span 5;
+      }
+    }
+    &:nth-child(even):has(.image) {
+      .image {
+        grid-column: span 5 / -1;
+      }
+    }
+  }
+
+  @media (width < $breakpoint-pc) {
+    & > div {
+      grid-column: span 4;
+      &:has(.image) {
+        align-self: center;
+        height: 252px;
+        grid-column: span 4;
+      }
+      &:nth-child(odd):has(.image),
+      &:nth-child(even):has(.image) {
+        .image {
+          grid-column: span 4;
+        }
+      }
+    }
+  }
 }
 
 :root {
@@ -254,7 +286,8 @@ body {
 
 /* ---- Container ---- */
 .container {
-  max-width: 1128px;
+  max-width: 1152px;
+  padding-inline: 12px;
   height: 100%;
   margin: 0 auto;
 }
@@ -315,7 +348,7 @@ body {
   }
 
   &__link {
-    @include typo-TitleLarge();
+    @include typoTitleLarge();
     text-transform: uppercase;
     color: var(--md-sys-color-on-primary-light);
   }
@@ -353,39 +386,42 @@ body {
     inset: 0;
     content: "";
     background: url("https://s3-alpha-sig.figma.com/img/5789/05ac/f6a90cb182a2ace4cb6fbef124c0b2ff?Expires=1733702400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=pVss~191npXhC5zzpmlJf7bcdoqDVftxaVoONvgi3Mnswdf-h-JNSKNw6n68MDQTWWrdTO2W8yinM6sdu9qnkwOC55iMtR~vzqTXWxMH~C~qfY0FfwbH8xuwmf-BYPM7WUf9zffT-sNgh9u-lAH64mIl4q~wfzgDLlSuWnB5ZK3j5MnVByKoZe3lax1qODddmwCT2j9oSxldq9WVp6iOErsWvgoaQZuDYYH7zXU6JYS8mSDQHKXXteXT9pTAAkrn2xdxeBs3w2FZ5iXBAhVpJ78wOgSxEn3ZzWL4ZTo2OCx9ALwcaLmibXqvn5MGFmnk~Pjbn9a2tTSr8183J2DWxg__")
-      center/100% no-repeat;
+      90% top/cover no-repeat;
   }
 
   &__row {
     @include gridMainLayout();
-    align-items: center;
-    height: 100%;
+    & {
+      align-items: center;
+      height: 100%;
+    }
   }
 
   &__block {
+    @include flexVerticalLayout(128px);
     grid-column: span 6;
-    display: flex;
-    flex-direction: column;
-    gap: 128px;
+    align-items: start;
   }
 
   &__info {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+    @include flexVerticalLayout(16px);
     color: var(--md-sys-color-on-primary-light);
   }
 
   &__title {
-    @include typo-DisplayLarge();
+    @include typoDisplayLarge();
   }
 
   &__slogan {
-    @include typo-HeadlineLarge();
+    @include typoHeadlineLarge();
   }
 
   &__button {
-    @include buttonTemplate();
+    @include typoDisplayMedium();
+    text-align: center;
+    border-radius: 16px;
+    padding: 24px 64px;
+    text-transform: uppercase;
     background-color: var(--md-sys-color-primary-light);
     color: var(--md-sys-color-on-primary-light);
   }
@@ -403,12 +439,12 @@ body {
   }
 
   &__title {
-    @include typo-HeadlineMedium();
+    @include typoHeadlineMedium();
     color: var(--md-sys-color-primary);
   }
 
   &__text {
-    @include typo-BodyLarge();
+    @include typoBodyLarge();
     color: var(--md-sys-color-on-surface);
   }
 }
@@ -433,12 +469,12 @@ body {
   }
 
   &__title {
-    @include typo-HeadlineMedium();
+    @include typoHeadlineMedium();
     color: var(--md-sys-color-primary);
   }
 
   &__text {
-    @include typo-BodyLarge();
+    @include typoBodyLarge();
     color: var(--md-sys-color-on-surface);
   }
 }
@@ -450,7 +486,7 @@ body {
   }
 
   &__block {
-    @include typo-BodyLarge();
+    @include typoBodyLarge();
     grid-column: 5 / span 8;
     color: var(--md-sys-color-on-surface-variant);
   }
@@ -468,12 +504,12 @@ body {
   }
 
   &__title {
-    @include typo-HeadlineMedium();
+    @include typoHeadlineMedium();
     color: var(--md-sys-color-primary);
   }
 
   &__text {
-    @include typo-BodyLarge();
+    @include typoBodyLarge();
     color: var(--md-sys-color-on-surface);
   }
 }
@@ -490,12 +526,12 @@ body {
   }
 
   &__title {
-    @include typo-HeadlineMedium();
+    @include typoHeadlineMedium();
     color: var(--md-sys-color-primary);
   }
 
   &__text {
-    @include typo-BodyLarge();
+    @include typoBodyLarge();
     color: var(--md-sys-color-on-surface);
   }
 }
@@ -503,7 +539,6 @@ body {
   background-color: var(--md-sys-color-secondary-container);
   &__row {
     @include gridBlockLayout();
-    align-items: start;
   }
 
   &__block {
@@ -514,12 +549,12 @@ body {
   }
 
   &__title {
-    @include typo-HeadlineMedium();
+    @include typoHeadlineMedium();
     color: var(--md-sys-color-primary);
   }
 
   &__text {
-    @include typo-BodyLarge();
+    @include typoBodyLarge();
     color: var(--md-sys-color-on-secondary-container);
   }
 }
@@ -536,12 +571,12 @@ body {
   }
 
   &__title {
-    @include typo-HeadlineMedium();
+    @include typoHeadlineMedium();
     color: var(--md-sys-color-primary);
   }
 
   &__text {
-    @include typo-BodyLarge();
+    @include typoBodyLarge();
     color: var(--md-sys-color-on-surface);
   }
 }
@@ -560,13 +595,13 @@ body {
     text-align: center;
     color: var(--md-sys-color-on-primary-container);
     &--small {
-      @include typo-DisplaySmall();
+      @include typoDisplaySmall();
     }
     &--middle {
-      @include typo-DisplayMedium();
+      @include typoDisplayMedium();
     }
     &--big {
-      @include typo-DisplayLarge();
+      @include typoDisplayLarge();
     }
   }
 }
@@ -576,7 +611,10 @@ body {
   }
 
   &__btn {
-    @include buttonTemplate();
+    @include typoDisplayMedium();
+    border-radius: 16px;
+    padding: 24px 64px;
+    text-transform: uppercase;
     background-color: var(--md-sys-color-primary);
     color: var(--md-sys-color-on-primary);
   }
@@ -605,11 +643,14 @@ body {
   }
 
   &__about {
-    grid-column: span 4 / -1;
+    grid-column: span 2 / -1;
+    @media (width >= $breakpoint-tablet) {
+      grid-column: span 4 / -1;
+    }
   }
 
   &__text {
-    @include typo-BodyMedium();
+    @include typoBodyMedium();
     color: var(--md-sys-color-inverse-on-surface);
   }
 }
