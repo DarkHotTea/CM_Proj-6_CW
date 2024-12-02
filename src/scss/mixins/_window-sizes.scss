@@ -1,0 +1,54 @@
+@use "sass:map";
+
+$_private-window-sizes-map: (
+  "compact": "width<600px",
+  "medium": "600px <= width<840px",
+  "expanded": "840px <= width < 1200px",
+  "large": "1200px <= width < 1600px",
+  "extra-large": "1600px <= width",
+);
+
+@mixin _private-on-window-size($window-size) {
+  $media-querry: map.get($_private-window-sizes-map, $window-size);
+  @media($media-querry) {
+    @content;
+  }
+}
+
+@mixin on-compact {
+  @include _private-on-window-size("compact") {
+    @content;
+  };
+}
+
+@mixin on-medium {
+  @include _private-on-window-size("medium") {
+    @content;
+  }
+}
+
+@mixin on-expanded {
+  @include _private-on-window-size("expanded") {
+    @content;
+  }
+}
+
+@mixin on-large {
+  @include _private-on-window-size("large") {
+    @content;
+  }
+}
+
+@mixin on-extra-large {
+  @include _private-on-window-size("extra-large") {
+    @content;
+  }
+}
+
+@mixin on-sizes($window-sizes) {
+  @each $window-size in $window-sizes {
+    @include _private-on-window-size($window-size) {
+      @content;
+    }
+  }
+}

@@ -1,7 +1,11 @@
 @use "sass:map";
 
+@use "scss/mixins/window-sizes";
+
+/* ---- Null-style ---- */
 @use "scss/core/reset";
 @include reset.init();
+/* --------------- */
 
 /* ---- Fonts ---- */
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap");
@@ -100,8 +104,8 @@ $loc-typo-Lib: (
 /* --------------- */
 
 /* ---- General ---- */
-$breakpoint-tablet: 768px;
-$breakpoint-pc: 1024px;
+$breakpoint-tablet: 768.1px;
+$breakpoint-pc: 1024.1px;
 
 @mixin flexVerticalLayout($gap) {
   display: flex;
@@ -119,19 +123,25 @@ $breakpoint-pc: 1024px;
 }
 
 @mixin gridMainLayout() {
+  --columns: 4;
+
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(var(--columns), 1fr);
   column-gap: 16px;
   row-gap: 50px;
 
-  @media (width >= $breakpoint-tablet) {
-    grid-template-columns: repeat(8, 1fr);
+  /* -- SmallTablet -- */
+  @include window-sizes.on-medium {
+    --columns: 8;
     column-gap: 24px;
   }
+  /* --  -- */
 
-  @media (width >= $breakpoint-pc) {
-    grid-template-columns: repeat(12, 1fr);
+  /* -- LargeTablet-PC -- */
+  @include window-sizes.on-sizes(("expanded", "large", "extra-large")) {
+    --columns: 12;
   }
+  /* --  -- */
 }
 
 @mixin gridBlockLayout() {
@@ -143,46 +153,39 @@ $breakpoint-pc: 1024px;
 
   & > div {
     @include flexVerticalLayout(16px);
-    grid-column: span 6;
+    grid-column: span 4;
 
     &:has(.image) {
       display: grid;
       grid-template-columns: subgrid;
+      align-self: center;
+      min-height: 256px;
       .image {
+        grid-column: span 4;
         background-position: center;
         background-size: cover;
         border-radius: 16px;
       }
     }
-
-    &:nth-child(odd):has(.image) {
-      .image {
-        grid-column: span 5;
-      }
-    }
-    &:nth-child(even):has(.image) {
-      .image {
-        grid-column: span 5 / -1;
-      }
-    }
   }
 
-  @media (width < $breakpoint-pc) {
+  /* -- Tablet-PC -- */
+  @include window-sizes.on-sizes(("expanded", "large", "extra-large")) {
     & > div {
-      grid-column: span 4;
-      &:has(.image) {
-        align-self: center;
-        height: 252px;
-        grid-column: span 4;
+      grid-column: span 6;
+      &:nth-child(odd):has(.image) {
+        .image {
+          grid-column: span 5;
+        }
       }
-      &:nth-child(odd):has(.image),
       &:nth-child(even):has(.image) {
         .image {
-          grid-column: span 4;
+          grid-column: span 5 / -1;
         }
       }
     }
   }
+  /* --  -- */
 }
 
 :root {
@@ -281,6 +284,7 @@ body {
 }
 
 .wrapper {
+  position: relative;
 }
 /* --------------- */
 
@@ -308,12 +312,18 @@ body {
 
 /* ---- Header ---- */
 .header {
-  > .container {
-    position: relative;
-  }
+  position: absolute;
+  left: 0;
+  z-index: 50;
+  width: 100%;
+  max-height: var(--menu-height);
+  padding-block: 26px;
 
   &__row {
     @include gridMainLayout();
+    & {
+      align-items: center;
+    }
   }
 
   &__logo {
@@ -323,12 +333,8 @@ body {
     }
   }
 
-  &__body {
-    max-height: var(--menu-height);
-    padding-block: 26px;
-    position: absolute;
-    left: 0;
-    z-index: 50;
+  &__menu {
+    grid-column: 7 / span 6;
   }
 
   &__burger {
@@ -337,14 +343,10 @@ body {
 }
 
 .menu {
-  grid-column: 7 / span 6;
   &__list {
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
-
-  &__item {
   }
 
   &__link {
@@ -353,18 +355,81 @@ body {
     color: var(--md-sys-color-on-primary-light);
   }
 }
-/* --- Adaptive --- */
 
-/* -- Tablet -- */
-
-/* --  -- */
-
-/* -- Moblie -- */
-
-/* --  -- */
-
-/* ---  --- */
-
+@include window-sizes.on-sizes(("compact", "medium")) {
+  .header {
+    &__burger {
+      grid-column: -1;
+      display: block;
+      cursor: pointer;
+      position: relative;
+      width: 56px;
+      z-index: 3;
+      &:before,
+      &:after {
+        content: "";
+        position: absolute;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background-color: var(--md-sys-color-on-primary-light);
+        border-radius: 35px;
+        transition: all 0.3s ease 0s;
+      }
+      span {
+        left: 0;
+        position: absolute;
+        width: 100%;
+        height: 4px;
+        background-color: var(--md-sys-color-on-primary-light);
+        border-radius: 35px;
+        transition: all 0.3s ease 0s;
+        top: 46%;
+      }
+      &:before {
+        top: 20%;
+      }
+      &:after {
+        bottom: 20%;
+      }
+    }
+    &__burger._active {
+      span {
+        height: 0;
+      }
+      &::before {
+        top: 50%;
+        transform: rotate(-45deg) translate(0, -70%);
+      }
+      &::after {
+        bottom: 50%;
+        transform: rotate(45deg) translate(0, 70%);
+      }
+    }
+  }
+  .menu {
+    position: fixed;
+    top: 0;
+    z-index: 2;
+    right: -100%;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    transition: right 0.3s ease 0s;
+    &__body {
+      height: inherit;
+      display: grid;
+      place-items: center;
+    }
+    &__list {
+      flex-direction: column;
+      /* gap: 30px; */
+    }
+    &._active {
+      right: 0;
+    }
+  }
+}
 /* ---------------- */
 
 /* ---- Main ---- */
@@ -431,9 +496,6 @@ body {
     @include gridBlockLayout();
   }
 
-  &__block {
-  }
-
   &__img {
     background-image: url("https://s3-alpha-sig.figma.com/img/64af/9ae6/66d8a601f727fc4ad3e565f793de4b8d?Expires=1733702400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=CtVkKEJau4BJjd7n6xXiiKmYOku2IQTaWWPs6MLxvl9t-1KGQfCRl0Dpx5e~QrPDL2aRZrPF4BAV~BmDBf1CN7we7lS0Evm3epGUCsUYW3Z2LItc0cVULdC1SHiRpH~Xez7xr6wCIJgDc5skB~KWzCssviai6B4ewmSQ8UHA3XesCmbd9f0AI0Mce057UBV3YOMAr4A1Oc-lPpPRXdMsLsbs8qfUph7n8VwHYF5NOMoCL0ij3V7H5Rya8sRww0vmcInZg1BTOVqrmnzp9LIKL8S0ACT~KV8vimzk8YQZtwvQtf38HJtMzoZ7bqdlRqQkm~xdaWveuYyLEaeZm5lZKg__");
   }
@@ -452,16 +514,10 @@ body {
   &__row {
     @include gridBarLayout();
   }
-
-  &__text {
-  }
 }
 .accident {
   &__row {
     @include gridBlockLayout();
-  }
-
-  &__block {
   }
 
   &__img {
@@ -487,16 +543,13 @@ body {
 
   &__block {
     @include typoBodyLarge();
-    grid-column: 5 / span 8;
     color: var(--md-sys-color-on-surface-variant);
+    grid-column: 5 / span 8;
   }
 }
 .newStart {
   &__row {
     @include gridBlockLayout();
-  }
-
-  &__block {
   }
 
   &__img {
@@ -516,9 +569,6 @@ body {
 .creating {
   &__row {
     @include gridBlockLayout();
-  }
-
-  &__block {
   }
 
   &__img {
@@ -541,9 +591,6 @@ body {
     @include gridBlockLayout();
   }
 
-  &__block {
-  }
-
   &__img {
     background-image: url("https://s3-alpha-sig.figma.com/img/8b60/af22/f02d84ebb8b268ddabe0443886678db9?Expires=1733702400&Key-Pair-Id=APKAQ4GOSFWCVNEHN3O4&Signature=glyVtFeh2AXWLqcKtUKmu84NcsDteVFJ6qkpE3pVssqLXuLcwHa1~7Vzw3~AM7IgKN91miW~~P2JOjbI8kMrQrPYolnlDRuQXuHaq7wn6V9K23a2tton9vBytgmZrgm-62gZ4f1Fkk~w~kzZHjZ0GQgG4GIeC~yRJYCd4dHcveZs2tNGUvqhoAo88v0rnq5~qomRdId7iL1SsSmGE1RqpUQmwo8E3HCf-o1ePq0qho2-6GYdb1ykShLw0qHFArwbsMx0SFa9JBzii0x8Xt23lo4TVwaTxXfZgduehKzncgF4u8r2v1xZRmdcfXHX5KTbfDTOpOW79~KYhP1Oksg2vg__");
   }
@@ -561,9 +608,6 @@ body {
 .dataSharing {
   &__row {
     @include gridBlockLayout();
-  }
-
-  &__block {
   }
 
   &__img {
@@ -586,9 +630,6 @@ body {
     @include gridBarLayout(100px);
     text-transform: none;
     row-gap: 16px;
-  }
-
-  &__block {
   }
 
   &__title {
@@ -644,9 +685,18 @@ body {
 
   &__about {
     grid-column: span 2 / -1;
-    @media (width >= $breakpoint-tablet) {
+
+    /* -- Tablet -- */
+    @include window-sizes.on-sizes(("medium", "expanded")) {
+      grid-column: span 3 / -1;
+    }
+    /* --  -- */
+
+    /* -- PC -- */
+    @include window-sizes.on-sizes(("large", "extra-large")) {
       grid-column: span 4 / -1;
     }
+    /* --  -- */
   }
 
   &__text {
@@ -654,17 +704,4 @@ body {
     color: var(--md-sys-color-inverse-on-surface);
   }
 }
-
-/* --- Adaptive --- */
-
-/* -- Tablet -- */
-
-/* --  -- */
-
-/* -- Moblie -- */
-
-/* --  -- */
-
-/* ---  --- */
-
 /* ---------------- */
